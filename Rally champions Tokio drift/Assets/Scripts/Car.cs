@@ -7,11 +7,9 @@ public class Car : MonoBehaviour {
     float verticalInput;
     float horizontalInput;
     Rigidbody rb;
-    Camera mainCamera;
 
 	void Start () {
         rb = gameObject.GetComponent<Rigidbody>();
-        mainCamera = Camera.main;
     }
 	
 	void Update () {
@@ -23,7 +21,6 @@ public class Car : MonoBehaviour {
     {
         MoveForward();
         RotateCar();
-        AlignCameraAngle();
     }
 
     void MoveForward()
@@ -36,18 +33,6 @@ public class Car : MonoBehaviour {
         if (Mathf.Abs(rb.velocity.x) > 1f || Mathf.Abs(rb.velocity.z) > 1f)
         {
             rb.transform.Rotate(new Vector3(0, horizontalInput, 0));
-            FollowCarWithCamera();
         }
-    }
-
-    void FollowCarWithCamera()
-    {
-        mainCamera.transform.position += rb.velocity / 50;
-    }
-
-    void AlignCameraAngle()
-    {
-        float angleDiff = rb.rotation.eulerAngles.y - mainCamera.transform.rotation.eulerAngles.y;
-        mainCamera.transform.RotateAround(transform.position, Vector3.up, angleDiff);
     }
 }
