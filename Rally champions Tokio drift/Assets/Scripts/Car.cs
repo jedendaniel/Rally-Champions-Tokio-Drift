@@ -7,14 +7,15 @@ public class Car : MonoBehaviour {
     float verticalInput;
     float horizontalInput;
     Rigidbody rb;
+    public InputSettings inputSettings;
 
 	void Start () {
         rb = gameObject.GetComponent<Rigidbody>();
     }
 	
 	void Update () {
-        verticalInput = Input.GetAxis("Vertical");
-        horizontalInput = Input.GetAxis("Horizontal");
+        verticalInput = Input.GetAxis(inputSettings.verticalAxis);
+        horizontalInput = Input.GetAxis(inputSettings.horizontalAxis);
     }
 
     private void FixedUpdate()
