@@ -11,11 +11,13 @@ public class GameManager : MonoBehaviour {
     float verticalParts = 1;
     float horizontalParts = 1;
     int laps = 1;
-    Dictionary<int, Car> places = new Dictionary<int, Car>();
+    Dictionary<Car, int> places = new Dictionary<Car, int>();
     int place = 1;
     public Text EndResults;
     public Camera mainCamera;
+    int timeLeft = 3;
 
+    bool gameStarted;
     bool gameFinished;
 
     void Start ()
@@ -23,10 +25,15 @@ public class GameManager : MonoBehaviour {
         carsLeft = new List<Car>(cars);
         GetScreenParts();
         SplitScreen();
+        StartCounting();
     }
 	
 	void Update () {
-        CheckCarsProgress();
+        CountDown();
+        if (gameStarted)
+        {
+            CheckCarsProgress();
+        }
     }
 
     void GetScreenParts()
@@ -70,6 +77,40 @@ public class GameManager : MonoBehaviour {
                 v += 1;
         }
     }
+     void StartCounting()
+    {
+        StartCoroutine("CountDownOneSecond");
+    }
+
+    void CountDown()
+    {
+        foreach(Car car in cars)
+        {
+            if (timeLeft > 0)
+                car.Counter.text = timeLeft.ToString();
+            else if (timeLeft == 0)
+            {
+                car.Counter.text = "GO!";
+                gameStarted = true;
+                gameFinished = false;
+                car.StartRace();
+            }
+            else if (timeLeft == -2)
+            {
+                car.Counter.enabled = false;
+                StopCoroutine("CountDownOneSecond");
+            }
+        }
+    }
+
+    IEnumerator CountDownOneSecond()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(1);
+            timeLeft--;
+        }
+    }
 
     void CheckCarsProgress()
     {
@@ -80,7 +121,7 @@ public class GameManager : MonoBehaviour {
             if (car.Lap == laps)
             {
                 finishedCars.Add(car);
-                places.Add(place, car);
+                places.Add(car, place);
                 car.EndRace(place);
             }
         }
@@ -89,25 +130,26 @@ public class GameManager : MonoBehaviour {
             place++;
             carsLeft.Remove(car);
         }
-        if (carsLeft.Count == 0) EndGame();
+        if (carsLeft.Count == 0) EndRace();
     }
 
-    void EndGame()
+    void EndRace()
     {
         StringBuilder text = new StringBuilder();
         text.AppendLine();
-        foreach(KeyValuePair<int,Car> place in places)
+        foreach(KeyValuePair<Car,int> place in places)
         {
-            text.Append(place.Key.ToString());
+            text.Append(place.Value.ToString());
             text.Append(". ");
-            text.Append(place.Value.name);
+            text.Append(place.Key.name);
             text.AppendLine();
-            place.Value.enabled = false;
+            place.Key.enabled = false;
         }
         mainCamera.rect = new Rect(0, 0, 1, 1);
         EndResults.transform.parent.gameObject.SetActive(true);
         EndResults.enabled = true;
         EndResults.text += text.ToString();
+        gameStarted = false;
         gameFinished = true;
     }
 }

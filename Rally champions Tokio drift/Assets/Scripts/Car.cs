@@ -18,6 +18,8 @@ public class Car : MonoBehaviour {
     Camera[] cameras;
     public string name;
     public Canvas uiCanvas;
+    public Text Counter;
+    bool inRace;
 
     public int Lap
     {
@@ -27,14 +29,38 @@ public class Car : MonoBehaviour {
         }
     }
 
-    void Start () {
+    private void Awake()
+    {
         rb = gameObject.GetComponent<Rigidbody>();
+        rb.isKinematic = true;
+    }
+
+    void Start () {
         cameras = GetComponentsInChildren<Camera>();
     }
 	
 	void Update () {
-        verticalInput = Input.GetAxis(inputSettings.verticalAxis);
-        horizontalInput = Input.GetAxis(inputSettings.horizontalAxis);
+        if (inRace)
+        {
+            verticalInput = Input.GetAxis(inputSettings.verticalAxis);
+            horizontalInput = Input.GetAxis(inputSettings.horizontalAxis);
+        }
+        else
+        {
+            //rb.constraints = RigidbodyConstraints.FreezePositionY;
+            //rb.constraints = RigidbodyConstraints.FreezePositionZ;
+            if (Mathf.Abs(rb.velocity.magnitude) < 2f)
+            {
+                verticalInput = 0;
+                horizontalInput = 0;
+                rb.isKinematic = true;
+            }
+            else
+            {
+                verticalInput *= 0.99f;
+                horizontalInput *= 0.99f;
+            }
+        }
     }
 
     private void FixedUpdate()
@@ -78,9 +104,9 @@ public class Car : MonoBehaviour {
         message.AppendLine();
         message.Append("Good job!");
         endText.text = message.ToString();
-        MeshRenderer rend;
-        rend = GetComponent<MeshRenderer>();
-        rend.enabled = false;
+        inRace = false;
+        //GetComponent<MeshRenderer>().enabled = false;
+        //GetComponent<BoxCollider>().enabled = false;
     }
 
     public static string GetNumberSuffix(int number)
@@ -93,10 +119,16 @@ public class Car : MonoBehaviour {
 
     private void OnDisable()
     {
-        uiCanvas.enabled = false;
         foreach(Camera cam in cameras)
         {
             cam.enabled = false;
         }
+    }
+
+    public void StartRace()
+    {
+        rb.isKinematic = false;
+        rb.velocity = Vector3.zero;
+        inRace = true;
     }
 }
